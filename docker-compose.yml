@@ -1,0 +1,22 @@
+version: "3.8"
+
+services:
+  waha:
+    image: devlikeapro/waha:latest
+    container_name: waha
+    ports:
+      - "5002:3000"
+    environment:
+      - WAHA_AUTO_START_SESSIONS=true
+      - WAHA_RECOVER_SESSIONS=true
+      - PUPPETEER_ARGS=--disable-dev-shm-usage
+      - WAHA_API_KEY=${WAHA_API_KEY}
+
+
+    extra_hosts:
+      - "host.docker.internal:host-gateway"   # 👈 makes it work on Linux
+
+    volumes:
+      - ./session:/app/.sessions
+      - /dev/shm:/dev/shm
+    restart: unless-stopped
