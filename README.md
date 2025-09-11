@@ -1,4 +1,3 @@
-````markdown
 # WhatsApp Automation Setup (WAHA + Python)
 
 This project sets up **WAHA (WhatsApp HTTP API)** in Docker along with a **Python Flask service** that:
