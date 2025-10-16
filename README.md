@@ -18,25 +18,10 @@ cd waha
 
 ---
 
-### 2. Configure environment variables
+### 2. Create .env file by copying .env.example
 
-Copy the sample `.env` file and update it with your values:
-
-```env
-# Flask server
-FLASK_HOST=0.0.0.0
-FLASK_PORT=5000
-
-# WAHA API
-WAHA_API_URL=https://your_url
-WAHA_API_KEY=your-secret-api-key
-WAHA_WEBHOOK_URL=https://your_url
-
-# NTFY
-NTFY_URL=https://your_url
-
-# Blocked senders (comma-separated)
-BLOCKED_SENDERS=status,someOtherSender
+```bash
+cp .env.example .env
 ```
 
 ---
