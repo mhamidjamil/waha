@@ -12,8 +12,8 @@ This project sets up **WAHA (WhatsApp HTTP API)** in Docker along with a **Pytho
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/your-username/your-repo.git
-cd your-repo
+git clone https://github.com/mhamidjamil/waha
+cd waha
 ````
 
 ---
