@@ -64,6 +64,50 @@ def start_whatsapp_session():
         print("Error:", e)
         return {"error": str(e)}
 
+
+# ----------------------------
+# API-based session status monitoring
+# ----------------------------
+DASHBOARD_CHECK_INTERVAL = int(os.getenv("DASHBOARD_CHECK_INTERVAL_SECONDS", "300"))  # seconds
+
+
+def check_session_status_via_api() -> dict:
+    """Call GET /api/sessions/default and return the parsed JSON (or error dict)."""
+    if not WAHA_BASE_URL:
+        return {'error': 'WAHA base URL not configured (WAHA_API_URL)'}
+
+    url = WAHA_BASE_URL.rstrip('/') + '/api/sessions/default'
+    headers = {
+        'Accept': 'application/json',
+        'X-Api-Key': WAHA_API_KEY
+    }
+    try:
+        resp = requests.get(url, headers=headers, timeout=10)
+        resp.raise_for_status()
+        data = resp.json()
+        return {'status': data.get('status'), 'raw': data}
+    except Exception as e:
+        print(f"⚠️ Failed to call session status API {url}: {e}")
+        return {'error': str(e)}
+
+
+def monitor_session_loop():
+    """Background loop that checks session status via API periodically and restarts sessions if STOPPED."""
+    print(f"Session monitor starting, checking every {DASHBOARD_CHECK_INTERVAL} seconds...")
+    while True:
+        try:
+            status = check_session_status_via_api()
+            print(f"Session API check result: {status}")
+
+            if status.get('status') == 'STOPPED':
+                print("Detected STOPPED sessions via API — attempting to restart via WAHA API...")
+                start_whatsapp_session()
+
+        except Exception as e:
+            print(f"⚠️ Session monitor error: {e}")
+
+        time.sleep(DASHBOARD_CHECK_INTERVAL)
+
 # ----------------------------
 # Flask Routes
 # ----------------------------
@@ -113,6 +157,12 @@ def delayed_start(skip_delay: bool):
 
     print("Running initial WhatsApp session call...")
     start_whatsapp_session()
+    # After initial start (or instant start), also start the session monitor
+    print("Starting session monitor thread now...")
+    threading.Thread(
+        target=monitor_session_loop,
+        daemon=True
+    ).start()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -124,5 +174,7 @@ if __name__ == "__main__":
         args=(args.instant,),
         daemon=True
     ).start()
+
+    # Session monitor will be started by delayed_start once initial start completes
 
     app.run(host=FLASK_HOST, port=FLASK_PORT)
