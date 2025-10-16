@@ -19,9 +19,15 @@ app = Flask(__name__)
 FLASK_HOST = os.getenv("FLASK_HOST", "0.0.0.0")
 FLASK_PORT = int(os.getenv("FLASK_PORT", "5000"))
 
-WAHA_API_URL = os.getenv("WAHA_API_URL")
+WAHA_BASE_URL = os.getenv("WAHA_API_URL")
 WAHA_API_KEY = os.getenv("WAHA_API_KEY")
 WAHA_WEBHOOK_URL = os.getenv("WAHA_WEBHOOK_URL")
+
+# Construct the specific session start endpoint from the base URL
+if WAHA_BASE_URL:
+    WAHA_SESSION_START_URL = WAHA_BASE_URL.rstrip('/') + '/api/sessions/start'
+else:
+    WAHA_SESSION_START_URL = None
 
 NTFY_URL = os.getenv("NTFY_URL")
 
@@ -47,7 +53,10 @@ def start_whatsapp_session():
     }
 
     try:
-        response = requests.post(WAHA_API_URL, headers=headers, json=payload)
+        if not WAHA_SESSION_START_URL:
+            raise RuntimeError("WAHA base URL is not configured (WAHA_API_URL)")
+
+        response = requests.post(WAHA_SESSION_START_URL, headers=headers, json=payload)
         print("Status Code:", response.status_code)
         print("Response:", response.text)
         return {"status": response.status_code, "response": response.text}
